@@ -60,7 +60,7 @@ app.post('/ozon/events', async (req, res) => {
     }
 
     // 处理其他事件类型
-    await handleEvent(event);
+    await handleEvent(event, res);
 
     // 返回 200 状态码，表示成功处理事件
     res.status(200).json({ result: true });
@@ -73,7 +73,7 @@ app.post('/ozon/events', async (req, res) => {
 });
 
 // 根据事件类型处理不同的 Ozon 通知
-async function handleEvent(event) {
+async function handleEvent(event, res) {
   const eventType = event.message_type;  // 读取通知类型
 
   switch (eventType) {
@@ -90,7 +90,7 @@ async function handleEvent(event) {
       await handlePriceUpdated(event);
       break;
     default:
-      await handleUnknownEvent(event);
+      await handleUnknownEvent(event, res);
       break;
   }
 }
@@ -133,6 +133,7 @@ async function handlePriceUpdated(event) {
 async function handleUnknownEvent(event) {
   const message = `Unknown event received: ${JSON.stringify(event)}`;
   await sendToFeishu(message);
+  return sendErrorResponse(res, 'ERROR_PARAMETER_VALUE_MISSED', 'Missing required parameter: message_type', null, 400);
 }
 
 // 将消息发送到飞书
